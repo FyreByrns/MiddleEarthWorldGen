@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import static org.fyrebyrns.narya.mewg.DefaultLOTRBiomes.getIDByBiome;
+import static org.fyrebyrns.narya.mewg.generation.Elevation.getElevation;
 
 public class LOTRMap {
     public static int BLOCKS_PER_MAP_CELL = 20;
@@ -172,8 +173,7 @@ public class LOTRMap {
         double percentX = (double)subCellX / (double)BLOCKS_PER_MAP_CELL;
         double percentZ = (double)subCellZ / (double)BLOCKS_PER_MAP_CELL;
 
-
-        return SEA_LEVEL;
+        return getElevation(cell);
     }
 
     public static ResourceKey<Biome> getBiome(MapPosition position) {

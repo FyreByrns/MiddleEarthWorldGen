@@ -5,11 +5,13 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class DefaultLOTRBiomes {
     public static HashMap<Integer, ResourceKey<Biome>> BiomesByID = new HashMap<>();
     public static HashMap<ResourceKey<Biome>, Integer> IDsByBiome = new HashMap<>();
+    public static HashMap<String, ResourceKey<Biome>> BiomesByName = new HashMap<>();
 
     public static final ResourceKey<Biome> FORODWAITH = register(1, "forodwaith");
     public static final ResourceKey<Biome> MOUNTAINS_FORODWAITH = register(2, "mountains_forodwaith");
@@ -178,10 +180,23 @@ public class DefaultLOTRBiomes {
         return IDsByBiome.get(biome);
     }
 
+    public static ArrayList<ResourceKey<Biome>> allWithPredicate(String predicate) {
+        ArrayList<ResourceKey<Biome>> result = new ArrayList<>();
+
+        for(String name : BiomesByName.keySet()){
+            if(name.startsWith(predicate)){
+                result.add(BiomesByName.get(name));
+            }
+        }
+
+        return result;
+    }
+
     private static ResourceKey<Biome> register(int id, String name) {
         ResourceKey<Biome> key = ResourceKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(Mewg.MOD_ID, name));
         BiomesByID.put(id, key);
         IDsByBiome.put(key, id);
+        BiomesByName.put(name, key);
         return key;
     }
     public static void init() {
