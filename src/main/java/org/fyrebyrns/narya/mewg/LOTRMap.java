@@ -16,6 +16,9 @@ public class LOTRMap {
     public static int BLOCKS_PER_MAP_CELL = 20;
     public static int ABSOLUTE_MAX_WORLD_HEIGHT = 384;
 
+    public static int MAP_WIDTH = 3200;
+    public static int MAP_HEIGHT = 4000;
+
     public static int SEA_LEVEL = 40;
     public static int BASE_TERRAIN_LEVEL = 50;
     public static int BASE_HILLS_LEVEL = 60;
@@ -168,6 +171,7 @@ public class LOTRMap {
         // percentage of the way along the cell
         double percentX = (double)subCellX / (double)BLOCKS_PER_MAP_CELL;
         double percentZ = (double)subCellZ / (double)BLOCKS_PER_MAP_CELL;
+
 
         return SEA_LEVEL;
     }
