@@ -6,7 +6,6 @@ import net.minecraft.world.level.biome.Biome;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -111,7 +110,7 @@ public class LOTRMap {
         return isWater(getMapR(cellX, cellZ), getMapG(cellX, cellZ), getMapB(cellX, cellZ));
     }
     public static boolean isWater(MapPosition position) {
-        return isWater(position.x(), position.y());
+        return isWater(position.x(), position.z());
     }
 
     public static boolean isForest(int r, int g, int b) {
@@ -144,16 +143,31 @@ public class LOTRMap {
 
     public static int getMapHeight(int x, int z) {
         ensureMapLoaded();
+
+        // the map cell this block falls within
         MapPosition position = getMapPos(x, z);
 
-        Color color = new Color(mapBiomes.getRGB(position.x(), position.y()));
+        // this map cell
+        ResourceKey<Biome> cell = getBiome(position);
+        // neighbouring map cells
+        ResourceKey<Biome> cellNorth = getBiome(position.north());
+        ResourceKey<Biome> cellSouth = getBiome(position.south());
+        ResourceKey<Biome> cellEast = getBiome(position.east());
+        ResourceKey<Biome> cellWest = getBiome(position.west());
+
+        // block position sub-map cell
+        int subCellX = x % BLOCKS_PER_MAP_CELL;
+        int subCellZ = z % BLOCKS_PER_MAP_CELL;
+        // percentage of the way along the cell
+        double percentX = (double)subCellX / (double)BLOCKS_PER_MAP_CELL;
+        double percentZ = (double)subCellZ / (double)BLOCKS_PER_MAP_CELL;
 
         return SEA_LEVEL;
     }
 
     public static ResourceKey<Biome> getBiome(MapPosition position) {
         ensureMapLoaded();
-        Color color = new Color(mapBiomes.getRGB(position.x(), position.y()));
+        Color color = new Color(mapBiomes.getRGB(position.x(), position.z()));
         int id = color.getBlue();
         return DefaultLOTRBiomes.BiomesByID.get(id);
     }
