@@ -14,6 +14,10 @@ public class Elevation {
     public static HashMap<ResourceKey<Biome>, Integer> RegisteredHeights = new HashMap<>();
 
     static {
+        register(SEA, SEA_LEVEL / 4);
+        register(RIVER, SEA_LEVEL / 2);
+        register(LAKE, SEA_LEVEL / 3);
+
         register(LINDON, SEA_LEVEL + 3);
 
         for(ResourceKey<Biome> biome : allWithPredicate("hills")) {
