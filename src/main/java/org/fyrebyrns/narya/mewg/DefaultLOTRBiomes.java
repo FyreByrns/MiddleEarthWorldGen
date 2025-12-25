@@ -9,6 +9,7 @@ import java.util.HashMap;
 
 public class DefaultLOTRBiomes {
     public static HashMap<Integer, ResourceKey<Biome>> BiomesByID = new HashMap<>();
+    public static HashMap<ResourceKey<Biome>, Integer> IDsByBiome = new HashMap<>();
 
     public static final ResourceKey<Biome> FORODWAITH = register(1, "forodwaith");
     public static final ResourceKey<Biome> MOUNTAINS_FORODWAITH = register(2, "mountains_forodwaith");
@@ -170,9 +171,17 @@ public class DefaultLOTRBiomes {
     public static final ResourceKey<Biome> SEA_NUMEN = register(158, "sea_numen");
     public static final ResourceKey<Biome> RIVER = register(159, "river");
 
+    public static ResourceKey<Biome> getBiomeByID(int id) {
+        return BiomesByID.get(id);
+    }
+    public static int getIDByBiome(ResourceKey<Biome> biome) {
+        return IDsByBiome.get(biome);
+    }
+
     private static ResourceKey<Biome> register(int id, String name) {
         ResourceKey<Biome> key = ResourceKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(Mewg.MOD_ID, name));
         BiomesByID.put(id, key);
+        IDsByBiome.put(key, id);
         return key;
     }
     public static void init() {
