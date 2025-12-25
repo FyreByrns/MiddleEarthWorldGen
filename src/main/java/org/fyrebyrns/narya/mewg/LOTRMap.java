@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
+import static org.fyrebyrns.narya.mewg.DefaultLOTRBiomes.getIDByBiome;
+
 public class LOTRMap {
     public static int BLOCKS_PER_MAP_CELL = 20;
     public static int ABSOLUTE_MAX_WORLD_HEIGHT = 384;
@@ -149,11 +151,16 @@ public class LOTRMap {
 
         // this map cell
         ResourceKey<Biome> cell = getBiome(position);
+        int id = getIDByBiome(cell);
         // neighbouring map cells
         ResourceKey<Biome> cellNorth = getBiome(position.north());
         ResourceKey<Biome> cellSouth = getBiome(position.south());
         ResourceKey<Biome> cellEast = getBiome(position.east());
         ResourceKey<Biome> cellWest = getBiome(position.west());
+        int idNorth = getIDByBiome(cellNorth);
+        int idSouth = getIDByBiome(cellSouth);
+        int idEast = getIDByBiome(cellEast);
+        int idWest = getIDByBiome(cellWest);
 
         // block position sub-map cell
         int subCellX = x % BLOCKS_PER_MAP_CELL;
