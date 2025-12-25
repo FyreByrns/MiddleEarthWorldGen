@@ -3,11 +3,11 @@
   "id": "mewg",
   "version": "${version}",
   "name": "Middle Earth World Gen",
-  "description": "",
-  "authors": [],
+  "description": "Middle Earth world generation.",
+  "authors": ["FyreByrns"],
   "contact": {},
   "license": "All-Rights-Reserved",
-  "icon": "assets/mewg/icon.png",
+  "icon": "assets/narya/icon.png",
   "environment": "*",
   "entrypoints": {
     "fabric-datagen": [
