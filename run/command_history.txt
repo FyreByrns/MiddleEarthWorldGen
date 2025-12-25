@@ -1,0 +1,11 @@
+/locate biome narya:andrast
+/locate biome narya:river
+/tp 10000 ~ 10000
+/locate biome narya:river
+/locate biome narya:sea
+/locate biome narya:lindon
+/tp @s 537 320 519
+/locate biome narya:lindon
+/tp 10000 300 10000
+/locate biome narya:lindon
+/tp @s 10544 300 10544

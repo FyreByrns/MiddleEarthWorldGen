@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "mewg",
+  "version": "${version}",
+  "name": "Middle Earth World Gen",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/mewg/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "org.fyrebyrns.narya.mewg.client.MewgDataGenerator"
+    ],
+    "client": [
+      "org.fyrebyrns.narya.mewg.client.MewgClient"
+    ],
+    "main": [
+      "org.fyrebyrns.narya.mewg.Mewg"
+    ]
+  },
+  "mixins": [
+    "mewg.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
