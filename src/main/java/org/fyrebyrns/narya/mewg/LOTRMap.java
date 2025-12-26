@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import static org.fyrebyrns.narya.mewg.DefaultLOTRBiomes.getIDByBiome;
+import static org.fyrebyrns.narya.mewg.MathHelper.*;
 import static org.fyrebyrns.narya.mewg.generation.Elevation.getElevation;
 
 public class LOTRMap {
@@ -152,20 +153,6 @@ public class LOTRMap {
 
         // the map cell this block falls within
         MapPosition position = getMapPos(x, z);
-
-        // this map cell
-        ResourceKey<Biome> cell = getBiome(position);
-        int id = getIDByBiome(cell);
-        // neighbouring map cells
-        ResourceKey<Biome> cellNorth = getBiome(position.north());
-        ResourceKey<Biome> cellSouth = getBiome(position.south());
-        ResourceKey<Biome> cellEast = getBiome(position.east());
-        ResourceKey<Biome> cellWest = getBiome(position.west());
-        int idNorth = getIDByBiome(cellNorth);
-        int idSouth = getIDByBiome(cellSouth);
-        int idEast = getIDByBiome(cellEast);
-        int idWest = getIDByBiome(cellWest);
-
         // block position sub-map cell
         int subCellX = x % BLOCKS_PER_MAP_CELL;
         int subCellZ = z % BLOCKS_PER_MAP_CELL;
@@ -173,7 +160,89 @@ public class LOTRMap {
         double percentX = (double)subCellX / (double)BLOCKS_PER_MAP_CELL;
         double percentZ = (double)subCellZ / (double)BLOCKS_PER_MAP_CELL;
 
-        return getElevation(cell);
+        // this map cell
+        ResourceKey<Biome> cell = getBiome(position);
+        int elevation = getElevation(cell);
+        // .. distance to center
+        double maxDistance = distance(0, 0, BLOCKS_PER_MAP_CELL, BLOCKS_PER_MAP_CELL) * 2;
+        int centerX = BLOCKS_PER_MAP_CELL / 2;
+        int centerZ = BLOCKS_PER_MAP_CELL / 2;
+        double distance = distance(centerX, centerZ, subCellX, subCellZ);
+
+        // neighbouring map cells
+        ResourceKey<Biome> cellNN = getBiome(position.north());
+        ResourceKey<Biome> cellSS = getBiome(position.south());
+        ResourceKey<Biome> cellWW = getBiome(position.west());
+        ResourceKey<Biome> cellEE = getBiome(position.east());
+        ResourceKey<Biome> cellNW = getBiome(position.north().west());
+        ResourceKey<Biome> cellNE = getBiome(position.north().east());
+        ResourceKey<Biome> cellSW = getBiome(position.south().west());
+        ResourceKey<Biome> cellSE = getBiome(position.south().east());
+        // .. elevations of neighbouring map cells
+        int elevationNN = getElevation(cellNN);
+        int elevationSS = getElevation(cellSS);
+        int elevationWW = getElevation(cellWW);
+        int elevationEE = getElevation(cellEE);
+        int elevationNW = getElevation(cellNW);
+        int elevationNE = getElevation(cellNE);
+        int elevationSW = getElevation(cellSW);
+        int elevationSE = getElevation(cellSE);
+
+        double mean = mean(convolve(
+                new double[][] {
+                        {elevationNW, elevationNN, elevationNE},
+                        {elevationWW, elevation  , elevationEE},
+                        {elevationSW, elevationSS, elevationSE}
+                },
+                new double[][] {
+                        {(1.0/16.0) * 1,(1.0/16.0) * 2,(1.0/16.0) * 1},
+                        {(1.0/16.0) * 2,(1.0/16.0) * 4,(1.0/16.0) * 2},
+                        {(1.0/16.0) * 1,(1.0/16.0) * 2,(1.0/16.0) * 1}
+                }
+        ));
+
+        return (int)mean;
+    }
+
+    private static double[][] convolve(double[][] input, double[][] kernel) {
+        double[][] result = input;
+
+        for(int x = 0; x < input.length; x++) {
+            for(int y = 0; y < input.length; y++) {
+                double accum = 0;
+
+                for(int kx = 0; kx < kernel.length; kx++) {
+                    for(int ky = 0; ky < kernel.length; ky++) {
+                        int sampleX = x + (int)map(0, kernel.length, -kernel.length/2, kernel.length/2, kx);
+                        int sampleY = y + (int)map(0, kernel.length, -kernel.length/2, kernel.length/2, ky);
+
+                        if (sampleX >= input.length) sampleX -= input.length;
+                        if (sampleY >= input.length) sampleY -= input.length;
+                        if (sampleX < 0)             sampleX += input.length;
+                        if (sampleY < 0)             sampleY += input.length;
+
+                        accum += input[sampleX][sampleY] * kernel[kx][ky];
+                    }
+                }
+
+                result[x][y] = accum;
+            }
+        }
+
+        return result;
+    }
+    private static double mean(double[][] input) {
+        int count = 0;
+        double sum = 0;
+
+        for (double[] doubles : input) {
+            for (double d : doubles) {
+                count++;
+                sum += d;
+            }
+        }
+
+        return sum / count;
     }
 
     public static ResourceKey<Biome> getBiome(MapPosition position) {
