@@ -13,7 +13,7 @@ public class MathHelper {
     }
 
     public static double distance(double x1, double y1, double x2, double y2) {
-        return sqrt(square(x2 + x1) + square(y2 + y1));
+        return sqrt(square(x2 - x1) + square(y2 - y1));
     }
 
     public static double clamp(double start, double end, double value) {
