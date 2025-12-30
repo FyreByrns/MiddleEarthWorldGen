@@ -10,8 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-import static org.fyrebyrns.narya.mewg.DefaultLOTRBiomes.getIDByBiome;
 import static org.fyrebyrns.narya.mewg.MathHelper.*;
+import static org.fyrebyrns.narya.mewg.OpenSimplex2S.noise2;
 import static org.fyrebyrns.narya.mewg.generation.Elevation.getElevation;
 
 public class LOTRMap {
@@ -150,24 +150,26 @@ public class LOTRMap {
 
     public static int getMapHeight(int x, int z) {
         ensureMapLoaded();
+        int bpms = BLOCKS_PER_MAP_CELL;
+
 
         // the map cell this block falls within
         MapPosition position = getMapPos(x, z);
         // block position sub-map cell
-        int subCellX = x % BLOCKS_PER_MAP_CELL;
-        int subCellZ = z % BLOCKS_PER_MAP_CELL;
+        int subCellX = x % bpms;
+        int subCellZ = z % bpms;
         // percentage of the way along the cell
-        double percentX = (double)subCellX / (double)BLOCKS_PER_MAP_CELL;
-        double percentZ = (double)subCellZ / (double)BLOCKS_PER_MAP_CELL;
+        double percentX = (double)subCellX / (double)bpms;
+        double percentZ = (double)subCellZ / (double)bpms;
 
         // this map cell
         ResourceKey<Biome> cell = getBiome(position);
         int elevation = getElevation(cell);
         // .. distance to center
-        double maxDistance = distance(0, 0, BLOCKS_PER_MAP_CELL, BLOCKS_PER_MAP_CELL) * 2;
-        int centerX = BLOCKS_PER_MAP_CELL / 2;
-        int centerZ = BLOCKS_PER_MAP_CELL / 2;
-        double distance = distance(centerX, centerZ, subCellX, subCellZ);
+        int centerX = bpms / 2;
+        int centerZ = bpms / 2;
+        double distance = distance(centerX, centerZ, subCellX, subCellZ) / (double)bpms;
+        double idist = 1.0 - distance;
 
         // neighbouring map cells
         ResourceKey<Biome> cellNN = getBiome(position.north());
@@ -188,20 +190,48 @@ public class LOTRMap {
         int elevationSW = getElevation(cellSW);
         int elevationSE = getElevation(cellSE);
 
-        double mean = mean(convolve(
-                new double[][] {
-                        {elevationNW, elevationNN, elevationNE},
-                        {elevationWW, elevation  , elevationEE},
-                        {elevationSW, elevationSS, elevationSE}
-                },
-                new double[][] {
-                        {(1.0/16.0) * 1,(1.0/16.0) * 2,(1.0/16.0) * 1},
-                        {(1.0/16.0) * 2,(1.0/16.0) * 4,(1.0/16.0) * 2},
-                        {(1.0/16.0) * 1,(1.0/16.0) * 2,(1.0/16.0) * 1}
-                }
-        ));
+        // per-block smoothing
+        // .. *ness values - how close the given block is to the specified edge.
+        double nnness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, bpms * 0.5, -bpms * 0.5));
+        double ssness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, bpms * 0.5, bpms * 1.5));
+        double wwness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, -bpms * 0.5, bpms * 0.5));
+        double eeness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, bpms * 1.5, bpms * 0.5));
+        double nwness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, -bpms * 0.5, -bpms * 0.5));
+        double neness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, bpms * 1.5, -bpms * 0.5));
+        double swness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, -bpms * 0.5, bpms * 1.5));
+        double seness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, bpms * 1.5, bpms * 1.5));
 
-        return (int)mean;
+        int differenceNN = elevationNN - elevation;
+        int differenceSS = elevationSS - elevation;
+        int differenceWW = elevationWW - elevation;
+        int differenceEE = elevationEE - elevation;
+        int differenceNW = elevationNW - elevation;
+        int differenceNE = elevationNE - elevation;
+        int differenceSW = elevationSW - elevation;
+        int differenceSE = elevationSE - elevation;
+
+        double fac = 0.9;
+        idist = 0;
+
+        double stretch = 50.0;
+        double magnitude = 0.03;
+
+        elevation += (int)((
+                + (clamp(0.0, 1.0, nnness - idist) * differenceNN * fac)
+                + (clamp(0.0, 1.0, ssness - idist) * differenceSS * fac)
+                + (clamp(0.0, 1.0, wwness - idist) * differenceWW * fac)
+                + (clamp(0.0, 1.0, eeness - idist) * differenceEE * fac)
+                + (clamp(0.0, 1.0, nwness - idist) * differenceNW * fac)
+                + (clamp(0.0, 1.0, neness - idist) * differenceNE * fac)
+                + (clamp(0.0, 1.0, swness - idist) * differenceSW * fac)
+                + (clamp(0.0, 1.0, seness - idist) * differenceSE * fac)
+                ));
+
+        double noise = map(0, 1, -0.2, 1.3,
+                noise2(1, x / stretch, z / stretch) * magnitude);
+
+        elevation *= 1.0 + noise;
+        return elevation;
     }
 
     private static double[][] convolve(double[][] input, double[][] kernel) {
