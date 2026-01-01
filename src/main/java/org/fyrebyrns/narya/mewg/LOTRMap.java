@@ -151,86 +151,84 @@ public class LOTRMap {
     public static int getMapHeight(int x, int z) {
         ensureMapLoaded();
         int bpms = BLOCKS_PER_MAP_CELL;
-
+        double dbpms = (double)bpms;
 
         // the map cell this block falls within
         MapPosition position = getMapPos(x, z);
         // block position sub-map cell
-        int subCellX = x % bpms;
-        int subCellZ = z % bpms;
-        // percentage of the way along the cell
-        double percentX = (double)subCellX / (double)bpms;
-        double percentZ = (double)subCellZ / (double)bpms;
+        double subCellX = (x % bpms) + 0.5;
+        double subCellZ = (z % bpms) + 0.5;
 
         // this map cell
         ResourceKey<Biome> cell = getBiome(position);
         int elevation = getElevation(cell);
         // .. distance to center
-        int centerX = bpms / 2;
-        int centerZ = bpms / 2;
-        double distance = distance(centerX, centerZ, subCellX, subCellZ) / (double)bpms;
-        double idist = 1.0 - distance;
+        double centerX = (dbpms / 2.0) + 0.5;
+        double centerZ = (dbpms / 2.0) + 0.5;
+        double distToCenter = distance(centerX, centerZ, subCellX, subCellZ) / dbpms;
+        double idist = 1.0 - distToCenter;
 
         // neighbouring map cells
-        ResourceKey<Biome> cellNN = getBiome(position.north());
-        ResourceKey<Biome> cellSS = getBiome(position.south());
-        ResourceKey<Biome> cellWW = getBiome(position.west());
-        ResourceKey<Biome> cellEE = getBiome(position.east());
-        ResourceKey<Biome> cellNW = getBiome(position.north().west());
-        ResourceKey<Biome> cellNE = getBiome(position.north().east());
-        ResourceKey<Biome> cellSW = getBiome(position.south().west());
-        ResourceKey<Biome> cellSE = getBiome(position.south().east());
-        // .. elevations of neighbouring map cells
-        int elevationNN = getElevation(cellNN);
-        int elevationSS = getElevation(cellSS);
-        int elevationWW = getElevation(cellWW);
-        int elevationEE = getElevation(cellEE);
-        int elevationNW = getElevation(cellNW);
-        int elevationNE = getElevation(cellNE);
-        int elevationSW = getElevation(cellSW);
-        int elevationSE = getElevation(cellSE);
+        double elevationNN = getElevation(getBiome(position.north()       ));
+        double elevationSS = getElevation(getBiome(position.south()       ));
+        double elevationWW = getElevation(getBiome(position.west()        ));
+        double elevationEE = getElevation(getBiome(position.east()        ));
+        double elevationNW = getElevation(getBiome(position.north().west()));
+        double elevationNE = getElevation(getBiome(position.north().east()));
+        double elevationSW = getElevation(getBiome(position.south().west()));
+        double elevationSE = getElevation(getBiome(position.south().east()));
+
+        double nnCenterZ = centerZ - bpms;
+        double ssCenterZ = centerZ + bpms;
+        double wwCenterX = centerX - bpms;
+        double eeCenterX = centerX + bpms;
 
         // per-block smoothing
         // .. *ness values - how close the given block is to the specified edge.
-        double nnness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, bpms * 0.5, -bpms * 0.5));
-        double ssness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, bpms * 0.5, bpms * 1.5));
-        double wwness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, -bpms * 0.5, bpms * 0.5));
-        double eeness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, bpms * 1.5, bpms * 0.5));
-        double nwness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, -bpms * 0.5, -bpms * 0.5));
-        double neness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, bpms * 1.5, -bpms * 0.5));
-        double swness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, -bpms * 0.5, bpms * 1.5));
-        double seness = map(0, bpms, 1, 0, distance(subCellX, subCellZ, bpms * 1.5, bpms * 1.5));
+        double nnness = 1.0 - (distance(subCellX, subCellZ, centerX, nnCenterZ) / (dbpms * 1.5));
+        double ssness = 1.0 - (distance(subCellX, subCellZ, centerX, ssCenterZ) / (dbpms * 1.5));
+        double wwness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, centerZ) / (dbpms * 1.5));
+        double eeness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, centerZ) / (dbpms * 1.5));
+        double nwness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, nnCenterZ) / (dbpms * 1.5));
+        double neness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, nnCenterZ) / (dbpms * 1.5));
+        double swness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, ssCenterZ) / (dbpms * 1.5));
+        double seness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, ssCenterZ) / (dbpms * 1.5));
+        if(nnness < 0) nnness = 0;
+        if(ssness < 0) ssness = 0;
+        if(wwness < 0) wwness = 0;
+        if(eeness < 0) eeness = 0;
+        if(nwness < 0) nwness = 0;
+        if(neness < 0) neness = 0;
+        if(swness < 0) swness = 0;
+        if(seness < 0) seness = 0;
 
-        int differenceNN = elevationNN - elevation;
-        int differenceSS = elevationSS - elevation;
-        int differenceWW = elevationWW - elevation;
-        int differenceEE = elevationEE - elevation;
-        int differenceNW = elevationNW - elevation;
-        int differenceNE = elevationNE - elevation;
-        int differenceSW = elevationSW - elevation;
-        int differenceSE = elevationSE - elevation;
+        double differenceNN = (elevationNN - elevation) / 2.0;
+        double differenceSS = (elevationSS - elevation) / 2.0;
+        double differenceWW = (elevationWW - elevation) / 2.0;
+        double differenceEE = (elevationEE - elevation) / 2.0;
+        double differenceNW = (elevationNW - elevation) / 2.0;
+        double differenceNE = (elevationNE - elevation) / 2.0;
+        double differenceSW = (elevationSW - elevation) / 2.0;
+        double differenceSE = (elevationSE - elevation) / 2.0;
 
-        double fac = 0.9;
-        idist = 0;
+        elevation += (int)(
+                  + (differenceNN * nnness)
+                  + (differenceSS * ssness)
+                  + (differenceWW * wwness)
+                  + (differenceEE * eeness)
+                  + (differenceNW * nwness)
+                  + (differenceNE * neness)
+                  + (differenceSW * swness)
+                  + (differenceSE * seness)
+        );
 
         double stretch = 50.0;
         double magnitude = 0.03;
-
-        elevation += (int)((
-                + (clamp(0.0, 1.0, nnness - idist) * differenceNN * fac)
-                + (clamp(0.0, 1.0, ssness - idist) * differenceSS * fac)
-                + (clamp(0.0, 1.0, wwness - idist) * differenceWW * fac)
-                + (clamp(0.0, 1.0, eeness - idist) * differenceEE * fac)
-                + (clamp(0.0, 1.0, nwness - idist) * differenceNW * fac)
-                + (clamp(0.0, 1.0, neness - idist) * differenceNE * fac)
-                + (clamp(0.0, 1.0, swness - idist) * differenceSW * fac)
-                + (clamp(0.0, 1.0, seness - idist) * differenceSE * fac)
-                ));
-
         double noise = map(0, 1, -0.2, 1.3,
                 noise2(1, x / stretch, z / stretch) * magnitude);
-
+        noise = 0; // disable noise for testing overall shape
         elevation *= 1.0 + noise;
+
         return elevation;
     }
 
