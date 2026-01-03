@@ -156,8 +156,8 @@ public class LOTRMap {
         // the map cell this block falls within
         MapPosition position = getMapPos(x, z);
         // block position sub-map cell
-        double subCellX = (x % bpms) + 0.5;
-        double subCellZ = (z % bpms) + 0.5;
+        double subCellX = (x % dbpms) + 0.5;
+        double subCellZ = (z % dbpms) + 0.5;
 
         // this map cell
         ResourceKey<Biome> cell = getBiome(position);
@@ -178,21 +178,21 @@ public class LOTRMap {
         double elevationSW = getElevation(getBiome(position.south().west()));
         double elevationSE = getElevation(getBiome(position.south().east()));
 
-        double nnCenterZ = centerZ - bpms;
-        double ssCenterZ = centerZ + bpms;
-        double wwCenterX = centerX - bpms;
-        double eeCenterX = centerX + bpms;
+        double nnCenterZ = centerZ - dbpms;
+        double ssCenterZ = centerZ + dbpms;
+        double wwCenterX = centerX - dbpms;
+        double eeCenterX = centerX + dbpms;
 
         // per-block smoothing
         // .. *ness values - how close the given block is to the specified edge.
-        double nnness = 1.0 - (distance(subCellX, subCellZ, centerX, nnCenterZ) / (dbpms * sqrt(2)));
-        double ssness = 1.0 - (distance(subCellX, subCellZ, centerX, ssCenterZ) / (dbpms * sqrt(2)));
-        double wwness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, centerZ) / (dbpms * sqrt(2)));
-        double eeness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, centerZ) / (dbpms * sqrt(2)));
-        double nwness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, nnCenterZ) / (dbpms * sqrt(2)));
-        double neness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, nnCenterZ) / (dbpms * sqrt(2)));
-        double swness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, ssCenterZ) / (dbpms * sqrt(2)));
-        double seness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, ssCenterZ) / (dbpms * sqrt(2)));
+        double nnness = 1.0 - (distance(subCellX, subCellZ, centerX, nnCenterZ) / (dbpms * SQRT2));
+        double ssness = 1.0 - (distance(subCellX, subCellZ, centerX, ssCenterZ) / (dbpms * SQRT2));
+        double wwness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, centerZ) / (dbpms * SQRT2));
+        double eeness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, centerZ) / (dbpms * SQRT2));
+        double nwness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, nnCenterZ) / (dbpms * SQRT2));
+        double neness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, nnCenterZ) / (dbpms * SQRT2));
+        double swness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, ssCenterZ) / (dbpms * SQRT2));
+        double seness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, ssCenterZ) / (dbpms * SQRT2));
         if(nnness < 0) nnness = 0;
         if(ssness < 0) ssness = 0;
         if(wwness < 0) wwness = 0;
@@ -224,9 +224,8 @@ public class LOTRMap {
 
         double stretch = 50.0;
         double magnitude = 0.03;
-        double noise = map(0, 1, -0.2, 1.3,
-                noise2(1, x / stretch, z / stretch) * magnitude);
-        noise = 0; // disable noise for testing overall shape
+        double noise = noise2(1, x / stretch, z / stretch) * magnitude;
+        //noise = 0; // disable noise for testing overall shape
         elevation *= 1.0 + noise;
 
         return elevation;

@@ -1,15 +1,12 @@
 package org.fyrebyrns.narya.mewg;
 
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.KeyDispatchCodec;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.world.level.levelgen.DensityFunction;
 
-import static org.fyrebyrns.narya.mewg.LOTRMap.*;
-
-public class MEDensity implements DensityFunction {
-    public static final MapCodec<MEDensity> CODEC = MapCodec.unit(MEDensity::new);
-    public static final MEDensity function = new MEDensity();
+public class MEPrelimDensity implements DensityFunction {
+    public static final MapCodec<MEPrelimDensity> CODEC = MapCodec.unit(MEPrelimDensity::new);
+    public static final MEPrelimDensity function = new MEPrelimDensity();
 
     @Override
     public double compute(FunctionContext functionContext) {
@@ -17,7 +14,7 @@ public class MEDensity implements DensityFunction {
         int y = functionContext.blockY();
         int z = functionContext.blockZ();
 
-        return y < LOTRMap.getMapHeight(x, z) ? 1 : 0;
+        return y < LOTRMap.getMapHeight(x, z) ? 1 - 0.090625 : 0;
     }
 
     @Override
@@ -38,7 +35,7 @@ public class MEDensity implements DensityFunction {
         return visitor.apply(function);
     }
 
-    public static final KeyDispatchDataCodec<MEDensity> KDC = KeyDispatchDataCodec.of(CODEC);
+    public static final KeyDispatchDataCodec<MEPrelimDensity> KDC = KeyDispatchDataCodec.of(CODEC);
     @Override
     public KeyDispatchDataCodec<? extends DensityFunction> codec() {
         return KDC;

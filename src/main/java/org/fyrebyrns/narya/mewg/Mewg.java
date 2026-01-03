@@ -27,7 +27,14 @@ public class Mewg implements ModInitializer {
         Registry.register(
                 BuiltInRegistries.DENSITY_FUNCTION_TYPE,
                 Identifier.fromNamespaceAndPath(MOD_ID, "medensity"),
-                MEDensity.CODEC);
+                MEDensity.CODEC
+        );
+        Registry.register(
+                BuiltInRegistries.DENSITY_FUNCTION_TYPE,
+                Identifier.fromNamespaceAndPath(MOD_ID, "meprelimdensity"),
+                MEPrelimDensity.CODEC
+        );
+
 //        Registry.register(
 //                BuiltInRegistries.CONDITION
 //        );
