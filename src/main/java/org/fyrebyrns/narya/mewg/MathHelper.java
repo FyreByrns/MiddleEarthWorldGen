@@ -1,6 +1,8 @@
 package org.fyrebyrns.narya.mewg;
 
 public class MathHelper {
+    public static final double SQRT2 = sqrt(2.0);
+
     public static double lerp(double start, double end, double amount) {
         return (start * (1.0 - amount)) + (end * amount);
     }
