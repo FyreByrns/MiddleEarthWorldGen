@@ -185,14 +185,14 @@ public class LOTRMap {
 
         // per-block smoothing
         // .. *ness values - how close the given block is to the specified edge.
-        double nnness = 1.0 - (distance(subCellX, subCellZ, centerX, nnCenterZ) / (dbpms * 1.5));
-        double ssness = 1.0 - (distance(subCellX, subCellZ, centerX, ssCenterZ) / (dbpms * 1.5));
-        double wwness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, centerZ) / (dbpms * 1.5));
-        double eeness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, centerZ) / (dbpms * 1.5));
-        double nwness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, nnCenterZ) / (dbpms * 1.5));
-        double neness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, nnCenterZ) / (dbpms * 1.5));
-        double swness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, ssCenterZ) / (dbpms * 1.5));
-        double seness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, ssCenterZ) / (dbpms * 1.5));
+        double nnness = 1.0 - (distance(subCellX, subCellZ, centerX, nnCenterZ) / (dbpms * sqrt(2)));
+        double ssness = 1.0 - (distance(subCellX, subCellZ, centerX, ssCenterZ) / (dbpms * sqrt(2)));
+        double wwness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, centerZ) / (dbpms * sqrt(2)));
+        double eeness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, centerZ) / (dbpms * sqrt(2)));
+        double nwness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, nnCenterZ) / (dbpms * sqrt(2)));
+        double neness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, nnCenterZ) / (dbpms * sqrt(2)));
+        double swness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, ssCenterZ) / (dbpms * sqrt(2)));
+        double seness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, ssCenterZ) / (dbpms * sqrt(2)));
         if(nnness < 0) nnness = 0;
         if(ssness < 0) ssness = 0;
         if(wwness < 0) wwness = 0;
