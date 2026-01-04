@@ -182,23 +182,23 @@ public class LOTRMap {
         double eeCenterX = centerX + dbpms;
 
         // per-block smoothing
-        // .. *ness values - how close the given block is to the specified edge.
-        double nnness = 1.0 - (distance(subCellX, subCellZ, centerX, nnCenterZ) /   (dbpms * SQRT2));
-        double ssness = 1.0 - (distance(subCellX, subCellZ, centerX, ssCenterZ) /   (dbpms * SQRT2));
-        double wwness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, centerZ) /   (dbpms * SQRT2));
-        double eeness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, centerZ) /   (dbpms * SQRT2));
-        double nwness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, nnCenterZ) / (dbpms * SQRT2));
-        double neness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, nnCenterZ) / (dbpms * SQRT2));
-        double swness = 1.0 - (distance(subCellX, subCellZ, wwCenterX, ssCenterZ) / (dbpms * SQRT2));
-        double seness = 1.0 - (distance(subCellX, subCellZ, eeCenterX, ssCenterZ) / (dbpms * SQRT2));
-        if(nnness < 0) nnness = 0;
-        if(ssness < 0) ssness = 0;
-        if(wwness < 0) wwness = 0;
-        if(eeness < 0) eeness = 0;
-        if(nwness < 0) nwness = 0;
-        if(neness < 0) neness = 0;
-        if(swness < 0) swness = 0;
-        if(seness < 0) seness = 0;
+        // .. *weight values - how close the given block is to the specified edge.
+        double nnWeight = 1.0 - (distance(subCellX, subCellZ, centerX, nnCenterZ) /   (dbpms * SQRT2));
+        double ssWeight = 1.0 - (distance(subCellX, subCellZ, centerX, ssCenterZ) /   (dbpms * SQRT2));
+        double wwWeight = 1.0 - (distance(subCellX, subCellZ, wwCenterX, centerZ) /   (dbpms * SQRT2));
+        double eeWeight = 1.0 - (distance(subCellX, subCellZ, eeCenterX, centerZ) /   (dbpms * SQRT2));
+        double nwWeight = 1.0 - (distance(subCellX, subCellZ, wwCenterX, nnCenterZ) / (dbpms * SQRT2));
+        double neWeight = 1.0 - (distance(subCellX, subCellZ, eeCenterX, nnCenterZ) / (dbpms * SQRT2));
+        double swWeight = 1.0 - (distance(subCellX, subCellZ, wwCenterX, ssCenterZ) / (dbpms * SQRT2));
+        double seWeight = 1.0 - (distance(subCellX, subCellZ, eeCenterX, ssCenterZ) / (dbpms * SQRT2));
+        if(nnWeight < 0) nnWeight = 0;
+        if(ssWeight < 0) ssWeight = 0;
+        if(wwWeight < 0) wwWeight = 0;
+        if(eeWeight < 0) eeWeight = 0;
+        if(nwWeight < 0) nwWeight = 0;
+        if(neWeight < 0) neWeight = 0;
+        if(swWeight < 0) swWeight = 0;
+        if(seWeight < 0) seWeight = 0;
 
         double differenceNN = (elevationNN - elevation) / 2.0;
         double differenceSS = (elevationSS - elevation) / 2.0;
@@ -210,14 +210,14 @@ public class LOTRMap {
         double differenceSE = (elevationSE - elevation) / 2.0;
 
         elevation +=
-                  + (differenceNN * nnness)
-                  + (differenceSS * ssness)
-                  + (differenceWW * wwness)
-                  + (differenceEE * eeness)
-                  + (differenceNW * nwness)
-                  + (differenceNE * neness)
-                  + (differenceSW * swness)
-                  + (differenceSE * seness)
+                  + (differenceNN * nnWeight)
+                  + (differenceSS * ssWeight)
+                  + (differenceWW * wwWeight)
+                  + (differenceEE * eeWeight)
+                  + (differenceNW * nwWeight)
+                  + (differenceNE * neWeight)
+                  + (differenceSW * swWeight)
+                  + (differenceSE * seWeight)
         ;
 
         double stretch = 50.0;
