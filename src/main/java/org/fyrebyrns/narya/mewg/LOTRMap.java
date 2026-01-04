@@ -15,7 +15,7 @@ import static org.fyrebyrns.narya.mewg.OpenSimplex2S.noise2;
 import static org.fyrebyrns.narya.mewg.generation.Elevation.getElevation;
 
 public class LOTRMap {
-    public static int BLOCKS_PER_MAP_CELL = 20;
+    public static int BLOCKS_PER_MAP_CELL = 160;
     public static int ABSOLUTE_MAX_WORLD_HEIGHT = 384;
 
     public static int MAP_WIDTH = 3200;
@@ -150,14 +150,13 @@ public class LOTRMap {
 
     public static int getMapHeight(int x, int z) {
         ensureMapLoaded();
-        int bpms = BLOCKS_PER_MAP_CELL;
-        double dbpms = (double)bpms;
+        double dbpms = BLOCKS_PER_MAP_CELL;
 
         // the map cell this block falls within
         MapPosition position = getMapPos(x, z);
         // block position sub-map cell
-        double subCellX = (x % dbpms) ;
-        double subCellZ = (z % dbpms) ;
+        double subCellX = (x % dbpms);
+        double subCellZ = (z % dbpms);
 
         // this map cell
         ResourceKey<Biome> cell = getBiome(position);
@@ -176,21 +175,29 @@ public class LOTRMap {
         double elevationSW = getElevation(getBiome(position.south().west()));
         double elevationSE = getElevation(getBiome(position.south().east()));
 
-        double nnCenterZ = centerZ - dbpms;
-        double ssCenterZ = centerZ + dbpms;
-        double wwCenterX = centerX - dbpms;
-        double eeCenterX = centerX + dbpms;
+        double nnCenterZ = centerZ - dbpms / 2.0;
+        double ssCenterZ = centerZ + dbpms / 2.0;
+        double wwCenterX = centerX - dbpms / 2.0;
+        double eeCenterX = centerX + dbpms / 2.0;
 
         // per-block smoothing
         // .. *weight values - how close the given block is to the specified edge.
-        double nnWeight = 1.0 - (distance(subCellX, subCellZ, centerX, nnCenterZ) /   (dbpms * SQRT2));
-        double ssWeight = 1.0 - (distance(subCellX, subCellZ, centerX, ssCenterZ) /   (dbpms * SQRT2));
-        double wwWeight = 1.0 - (distance(subCellX, subCellZ, wwCenterX, centerZ) /   (dbpms * SQRT2));
-        double eeWeight = 1.0 - (distance(subCellX, subCellZ, eeCenterX, centerZ) /   (dbpms * SQRT2));
-        double nwWeight = 1.0 - (distance(subCellX, subCellZ, wwCenterX, nnCenterZ) / (dbpms * SQRT2));
-        double neWeight = 1.0 - (distance(subCellX, subCellZ, eeCenterX, nnCenterZ) / (dbpms * SQRT2));
-        double swWeight = 1.0 - (distance(subCellX, subCellZ, wwCenterX, ssCenterZ) / (dbpms * SQRT2));
-        double seWeight = 1.0 - (distance(subCellX, subCellZ, eeCenterX, ssCenterZ) / (dbpms * SQRT2));
+//        double nnWeight = 1.0 - (distance(subCellX, subCellZ, centerX, nnCenterZ) /   (dbpms));
+//        double ssWeight = 1.0 - (distance(subCellX, subCellZ, centerX, ssCenterZ) /   (dbpms));
+//        double wwWeight = 1.0 - (distance(subCellX, subCellZ, wwCenterX, centerZ) /   (dbpms));
+//        double eeWeight = 1.0 - (distance(subCellX, subCellZ, eeCenterX, centerZ) /   (dbpms));
+//        double nwWeight = 1.0 - (distance(subCellX, subCellZ, wwCenterX, nnCenterZ) / (dbpms));
+//        double neWeight = 1.0 - (distance(subCellX, subCellZ, eeCenterX, nnCenterZ) / (dbpms));
+//        double swWeight = 1.0 - (distance(subCellX, subCellZ, wwCenterX, ssCenterZ) / (dbpms));
+//        double seWeight = 1.0 - (distance(subCellX, subCellZ, eeCenterX, ssCenterZ) / (dbpms));
+        double nnWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, centerX, nnCenterZ))  );
+        double ssWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, centerX, ssCenterZ))  );
+        double wwWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, wwCenterX, centerZ))  );
+        double eeWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, eeCenterX, centerZ))  );
+        double nwWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, wwCenterX, nnCenterZ)));
+        double neWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, eeCenterX, nnCenterZ)));
+        double swWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, wwCenterX, ssCenterZ)));
+        double seWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, eeCenterX, ssCenterZ)));
         if(nnWeight < 0) nnWeight = 0;
         if(ssWeight < 0) ssWeight = 0;
         if(wwWeight < 0) wwWeight = 0;
