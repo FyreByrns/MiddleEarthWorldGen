@@ -41,11 +41,6 @@ public class Mewg implements ModInitializer {
                 MESurface.CODEC
         );
 
-//        Registry.register(
-//                BuiltInRegistries.CONDITION
-//        );
-
-
         DefaultLOTRBiomes.init();
     }
 }

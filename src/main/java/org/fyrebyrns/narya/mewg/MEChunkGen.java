@@ -142,11 +142,11 @@ public class MEChunkGen extends ChunkGenerator {
 
                 boolean hasWater = LOTRMap.isWater(mP.x(), mP.z());
                 if(hasWater) block = Blocks.WATER.defaultBlockState();
-//                float percentageX = (float)(worldX % mapScale) / (float) mapScale;
-//                float percentageZ = (float)(worldZ % mapScale) / (float) mapScale;
-//                if(percentageX == 0 || percentageZ == 0) {
-//                    block = Blocks.EMERALD_BLOCK.defaultBlockState();
-//                }
+                float percentageX = (float)(worldX % BLOCKS_PER_MAP_CELL) / (float)BLOCKS_PER_MAP_CELL;
+                float percentageZ = (float)(worldZ % BLOCKS_PER_MAP_CELL) / (float)BLOCKS_PER_MAP_CELL;
+                if(percentageX == 0 || percentageZ == 0) {
+                    block = Blocks.EMERALD_BLOCK.defaultBlockState();
+                }
 
                 for (int _y = 0; _y < height; _y++) {
                     if(_y == 0) {
