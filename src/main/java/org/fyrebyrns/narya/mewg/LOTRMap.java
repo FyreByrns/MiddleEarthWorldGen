@@ -161,7 +161,7 @@ public class LOTRMap {
 
         // this map cell
         ResourceKey<Biome> cell = getBiome(position);
-        int elevation = getElevation(cell);
+        double elevation = getElevation(cell);
         // .. distance to center
         double centerX = (dbpms / 2.0) + 0.5;
         double centerZ = (dbpms / 2.0) + 0.5;
@@ -211,7 +211,7 @@ public class LOTRMap {
         double differenceSW = (elevationSW - elevation) / 2.0;
         double differenceSE = (elevationSE - elevation) / 2.0;
 
-        elevation += (int)(
+        elevation +=
                   + (differenceNN * nnness)
                   + (differenceSS * ssness)
                   + (differenceWW * wwness)
@@ -220,15 +220,16 @@ public class LOTRMap {
                   + (differenceNE * neness)
                   + (differenceSW * swness)
                   + (differenceSE * seness)
-        );
+        ;
 
         double stretch = 50.0;
         double magnitude = 0.03;
         double noise = noise2(1, x / stretch, z / stretch) * magnitude;
+        noise += noise2(1, x / (stretch / 2.0), z / (stretch / 2.0)) * magnitude;
         //noise = 0; // disable noise for testing overall shape
         elevation *= 1.0 + noise;
 
-        return elevation;
+        return (int)elevation;
     }
 
     private static double[][] convolve(double[][] input, double[][] kernel) {

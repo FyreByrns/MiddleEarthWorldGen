@@ -3,6 +3,7 @@ package org.fyrebyrns.narya.mewg;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,11 @@ public class Mewg implements ModInitializer {
                 BuiltInRegistries.DENSITY_FUNCTION_TYPE,
                 Identifier.fromNamespaceAndPath(MOD_ID, "meprelimdensity"),
                 MEPrelimDensity.CODEC
+        );
+        Registry.register(
+                BuiltInRegistries.MATERIAL_RULE,
+                Identifier.fromNamespaceAndPath(MOD_ID, "mesurface"),
+                MESurface.CODEC
         );
 
 //        Registry.register(

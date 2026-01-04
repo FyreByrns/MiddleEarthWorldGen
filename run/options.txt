@@ -1,7 +1,7 @@
 version:4671
 ao:true
 biomeBlendRadius:2
-chunkSectionFadeInTime:0.75
+chunkSectionFadeInTime:0.0
 cutoutLeaves:true
 enableVsync:true
 entityDistanceScaling:1.0
@@ -27,7 +27,7 @@ mipmapLevels:4
 narrator:0
 particles:0
 reducedDebugInfo:false
-renderClouds:"true"
+renderClouds:"false"
 cloudRange:64
 renderDistance:32
 simulationDistance:12

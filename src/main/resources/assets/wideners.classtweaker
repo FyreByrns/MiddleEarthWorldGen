@@ -1,0 +1,6 @@
+classTweaker v1 named
+
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$Context
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$Condition
+
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context abovePreliminarySurface Lnet/minecraft/world/level/levelgen/SurfaceRules$Condition;
