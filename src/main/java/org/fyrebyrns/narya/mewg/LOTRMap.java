@@ -172,8 +172,8 @@ public class LOTRMap {
         double magnitude = 0.03;
         double noise = noise2(1, x / stretch, z / stretch) * magnitude;
         noise += noise2(1, x / (stretch / 2.0), z / (stretch / 2.0)) * magnitude;
-        noise = 0; // disable noise for testing overall shape
-        elevation *= (int)(1.0 + noise);
+//        noise = 0; // disable noise for testing overall shape
+        elevation = (int)((double)elevation * (1.0 + noise));
 
         return elevation;
     }
