@@ -15,7 +15,7 @@ import static org.fyrebyrns.narya.mewg.OpenSimplex2S.noise2;
 import static org.fyrebyrns.narya.mewg.generation.Elevation.getElevation;
 
 public class LOTRMap {
-    public static int BLOCKS_PER_MAP_CELL = 160;
+    public static int BLOCKS_PER_MAP_CELL = 20;
     public static int ABSOLUTE_MAX_WORLD_HEIGHT = 384;
 
     public static int MAP_WIDTH = 3200;
@@ -150,91 +150,32 @@ public class LOTRMap {
 
     public static int getMapHeight(int x, int z) {
         ensureMapLoaded();
-        double dbpms = BLOCKS_PER_MAP_CELL;
 
-        // the map cell this block falls within
-        MapPosition position = getMapPos(x, z);
-        // block position sub-map cell
-        double subCellX = (x % dbpms);
-        double subCellZ = (z % dbpms);
-
-        // this map cell
-        ResourceKey<Biome> cell = getBiome(position);
-        double elevation = getElevation(cell);
-        // .. distance to center
-        double centerX = (dbpms / 2.0);
-        double centerZ = (dbpms / 2.0);
-
-        // neighbouring map cells
-        double elevationNN = getElevation(getBiome(position.north()       ));
-        double elevationSS = getElevation(getBiome(position.south()       ));
-        double elevationWW = getElevation(getBiome(position.west()        ));
-        double elevationEE = getElevation(getBiome(position.east()        ));
-        double elevationNW = getElevation(getBiome(position.north().west()));
-        double elevationNE = getElevation(getBiome(position.north().east()));
-        double elevationSW = getElevation(getBiome(position.south().west()));
-        double elevationSE = getElevation(getBiome(position.south().east()));
-
-        double nnCenterZ = centerZ - dbpms / 2.0;
-        double ssCenterZ = centerZ + dbpms / 2.0;
-        double wwCenterX = centerX - dbpms / 2.0;
-        double eeCenterX = centerX + dbpms / 2.0;
-
-        // per-block smoothing
-        // .. *weight values - how close the given block is to the specified edge.
-//        double nnWeight = 1.0 - (distance(subCellX, subCellZ, centerX, nnCenterZ) /   (dbpms));
-//        double ssWeight = 1.0 - (distance(subCellX, subCellZ, centerX, ssCenterZ) /   (dbpms));
-//        double wwWeight = 1.0 - (distance(subCellX, subCellZ, wwCenterX, centerZ) /   (dbpms));
-//        double eeWeight = 1.0 - (distance(subCellX, subCellZ, eeCenterX, centerZ) /   (dbpms));
-//        double nwWeight = 1.0 - (distance(subCellX, subCellZ, wwCenterX, nnCenterZ) / (dbpms));
-//        double neWeight = 1.0 - (distance(subCellX, subCellZ, eeCenterX, nnCenterZ) / (dbpms));
-//        double swWeight = 1.0 - (distance(subCellX, subCellZ, wwCenterX, ssCenterZ) / (dbpms));
-//        double seWeight = 1.0 - (distance(subCellX, subCellZ, eeCenterX, ssCenterZ) / (dbpms));
-        double nnWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, centerX, nnCenterZ))  );
-        double ssWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, centerX, ssCenterZ))  );
-        double wwWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, wwCenterX, centerZ))  );
-        double eeWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, eeCenterX, centerZ))  );
-        double nwWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, wwCenterX, nnCenterZ)));
-        double neWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, eeCenterX, nnCenterZ)));
-        double swWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, wwCenterX, ssCenterZ)));
-        double seWeight = Math.exp(-(1.0 / square(dbpms)) * square(distance(subCellX, subCellZ, eeCenterX, ssCenterZ)));
-        if(nnWeight < 0) nnWeight = 0;
-        if(ssWeight < 0) ssWeight = 0;
-        if(wwWeight < 0) wwWeight = 0;
-        if(eeWeight < 0) eeWeight = 0;
-        if(nwWeight < 0) nwWeight = 0;
-        if(neWeight < 0) neWeight = 0;
-        if(swWeight < 0) swWeight = 0;
-        if(seWeight < 0) seWeight = 0;
-
-        double differenceNN = (elevationNN - elevation) / 2.0;
-        double differenceSS = (elevationSS - elevation) / 2.0;
-        double differenceWW = (elevationWW - elevation) / 2.0;
-        double differenceEE = (elevationEE - elevation) / 2.0;
-        double differenceNW = (elevationNW - elevation) / 2.0;
-        double differenceNE = (elevationNE - elevation) / 2.0;
-        double differenceSW = (elevationSW - elevation) / 2.0;
-        double differenceSE = (elevationSE - elevation) / 2.0;
-
-        elevation +=
-                  + (differenceNN * nnWeight)
-                  + (differenceSS * ssWeight)
-                  + (differenceWW * wwWeight)
-                  + (differenceEE * eeWeight)
-                  + (differenceNW * nwWeight)
-                  + (differenceNE * neWeight)
-                  + (differenceSW * swWeight)
-                  + (differenceSE * seWeight)
-        ;
+        int offset = (BLOCKS_PER_MAP_CELL / 2);
+        int bottom = z - offset;
+        int top    = z + offset;
+        int left   = x - offset;
+        int right  = x + offset;
+        float rightCells  = (x + offset) % BLOCKS_PER_MAP_CELL;
+        float leftCells   =  2 * offset  - rightCells;
+        float topCells    = (z + offset) % BLOCKS_PER_MAP_CELL;
+        float bottomCells =  2 * offset  - topCells;
+        float average = (float) ((
+                        + bottomCells * leftCells  * getElevation(getBiome(getMapPos(left , bottom)))
+                        + bottomCells * rightCells * getElevation(getBiome(getMapPos(right, bottom)))
+                        + topCells    * leftCells  * getElevation(getBiome(getMapPos(left , top   )))
+                        + topCells    * rightCells * getElevation(getBiome(getMapPos(right, top   )))
+                ) / square(offset * 2));
+        int elevation = (int)average;
 
         double stretch = 50.0;
         double magnitude = 0.03;
         double noise = noise2(1, x / stretch, z / stretch) * magnitude;
         noise += noise2(1, x / (stretch / 2.0), z / (stretch / 2.0)) * magnitude;
         noise = 0; // disable noise for testing overall shape
-        elevation *= 1.0 + noise;
+        elevation *= (int)(1.0 + noise);
 
-        return (int)elevation;
+        return elevation;
     }
 
     private static double[][] convolve(double[][] input, double[][] kernel) {
