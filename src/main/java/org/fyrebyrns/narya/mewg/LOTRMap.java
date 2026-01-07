@@ -15,7 +15,7 @@ import static org.fyrebyrns.narya.mewg.OpenSimplex2S.noise2;
 import static org.fyrebyrns.narya.mewg.generation.Elevation.getElevation;
 
 public class LOTRMap {
-    public static int BLOCKS_PER_MAP_CELL = 20;
+    public static int BLOCKS_PER_MAP_CELL = 160;
     public static int ABSOLUTE_MAX_WORLD_HEIGHT = 384;
 
     public static int MAP_WIDTH = 3200;
@@ -151,6 +151,19 @@ public class LOTRMap {
     public static int getMapHeight(int x, int z) {
         ensureMapLoaded();
 
+        double zxSampleOffsetStretch = (double)BLOCKS_PER_MAP_CELL / 3.0;
+        double zxSampleOffsetMagnitude = (double)BLOCKS_PER_MAP_CELL / 20.0 * 3.0;
+        int zxSampleOffsetNoise = (int) (
+                        noise2(
+                                2,
+                                (double)x / zxSampleOffsetStretch,
+                                (double)z / zxSampleOffsetStretch)
+                                * zxSampleOffsetMagnitude
+        );
+
+        x += zxSampleOffsetNoise;
+        z += zxSampleOffsetNoise;
+
         int offset = (BLOCKS_PER_MAP_CELL / 2);
         int bottom = z - offset;
         int top    = z + offset;
@@ -161,14 +174,14 @@ public class LOTRMap {
         float topCells    = (z + offset) % BLOCKS_PER_MAP_CELL;
         float bottomCells =  2 * offset  - topCells;
         float average = (float) ((
-                        + bottomCells * leftCells  * getElevation(getBiome(getMapPos(left , bottom)))
-                        + bottomCells * rightCells * getElevation(getBiome(getMapPos(right, bottom)))
-                        + topCells    * leftCells  * getElevation(getBiome(getMapPos(left , top   )))
-                        + topCells    * rightCells * getElevation(getBiome(getMapPos(right, top   )))
+                        + (bottomCells) * (leftCells ) * getElevation(getBiome(getMapPos(left , bottom)))
+                        + (bottomCells) * (rightCells) * getElevation(getBiome(getMapPos(right, bottom)))
+                        + (topCells   ) * (leftCells ) * getElevation(getBiome(getMapPos(left , top   )))
+                        + (topCells   ) * (rightCells) * getElevation(getBiome(getMapPos(right, top   )))
                 ) / square(offset * 2));
         int elevation = (int)average;
 
-        double stretch = 50.0;
+        double stretch = ((double)BLOCKS_PER_MAP_CELL / 20.0) * 50.0;
         double magnitude = 0.03;
         double noise = noise2(1, x / stretch, z / stretch) * magnitude;
         noise += noise2(1, x / (stretch / 2.0), z / (stretch / 2.0)) * magnitude;
