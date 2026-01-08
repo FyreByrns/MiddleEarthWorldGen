@@ -34,9 +34,6 @@ public class LOTRMap {
 
     private static BufferedImage map;
     private static BufferedImage mapBiomes;
-    private static BufferedImage mapJustWater;
-    private static BufferedImage mapDirectWater;
-    private static BufferedImage mapNearWater;
 
     private static BufferedImage waterColourMap;
     private static BufferedImage forestColourMap;
@@ -48,9 +45,6 @@ public class LOTRMap {
             try {
                 map = ImageIO.read(getStream("/assets/narya/map/lotr-biome-map.png"));
                 mapBiomes = ImageIO.read(getStream("/assets/narya/map/original-biome-map.png"));
-                mapJustWater = ImageIO.read(getStream("/assets/narya/map/just-water.png"));
-                mapDirectWater = ImageIO.read(getStream("/assets/narya/map/next-to-water.png"));
-                mapNearWater = ImageIO.read(getStream("/assets/narya/map/near-water.png"));
 
                 // generate the map of colours -> features
                 waterColourMap = ImageIO.read(getStream("/assets/narya/map/water-colours.png"));
@@ -73,40 +67,6 @@ public class LOTRMap {
     // get an input stream from a path
     private static InputStream getStream(String path) {
         return LOTRMap.class.getResourceAsStream(path);
-    }
-
-    public static int getMapR(int sampleX, int sampleZ) {
-        ensureMapLoaded();
-        if(mapLoaded) {
-            int sX = Math.max(0, Math.min(sampleX, map.getWidth()-1));
-            int sY = Math.max(0, Math.min(sampleZ, map.getHeight()-1));
-
-            Color color = new Color(map.getRGB(sX, sY));
-            return color.getRed();
-        }
-        return 0;
-    }
-    public static int getMapG(int sampleX, int sampleZ) {
-        ensureMapLoaded();
-        if(mapLoaded) {
-            int sX = Math.max(0, Math.min(sampleX, map.getWidth()-1));
-            int sY = Math.max(0, Math.min(sampleZ, map.getHeight()-1));
-
-            Color color = new Color(map.getRGB(sX, sY));
-            return color.getGreen();
-        }
-        return 0;
-    }
-    public static int getMapB(int sampleX, int sampleZ) {
-        ensureMapLoaded();
-        if(mapLoaded) {
-            int sX = Math.max(0, Math.min(sampleX, map.getWidth()-1));
-            int sY = Math.max(0, Math.min(sampleZ, map.getHeight()-1));
-
-            Color color = new Color(map.getRGB(sX, sY));
-            return color.getBlue();
-        }
-        return 0;
     }
 
     public static int getMapHeight(int x, int z) {
