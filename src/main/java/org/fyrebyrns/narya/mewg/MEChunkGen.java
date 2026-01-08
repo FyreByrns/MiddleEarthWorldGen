@@ -83,15 +83,6 @@ public class MEChunkGen extends ChunkGenerator {
     }
     //</editor-fold>
 
-
-    float lerp(float a, float b, float f) {
-        return (float) (a * (1.0 - f) + (b * f));
-    }
-
-    // how many square meters each pixel of the map represents
-    private static int mapCellSmoothing = 4;
-    private static int smoothingSkip = 1;
-
     @Override
     public CompletableFuture<ChunkAccess> fillFromNoise(
             Blender blender,
@@ -114,40 +105,6 @@ public class MEChunkGen extends ChunkGenerator {
                 int height = getSeaLevel() + 2;
                 BlockState block = fillerBlock;
 
-                int worldX = cX * chunkSize + x;
-                int worldZ = cZ * chunkSize + z;
-
-                MapPosition mP = LOTRMap.getMapPos(worldX, worldZ);
-
-                // get average of surrounding height
-                int total = 0;
-                int count = 0;
-                for(int xx = -BLOCKS_PER_MAP_CELL/2 * mapCellSmoothing; xx < BLOCKS_PER_MAP_CELL/2* mapCellSmoothing; xx+=smoothingSkip) {
-                    for(int zz = -BLOCKS_PER_MAP_CELL/2* mapCellSmoothing; zz < BLOCKS_PER_MAP_CELL/2* mapCellSmoothing; zz+=smoothingSkip) {
-                        int wx = worldX + xx;
-                        int wz = worldZ + zz;
-
-                        int mx = wx / BLOCKS_PER_MAP_CELL;
-                        int mz = wz / BLOCKS_PER_MAP_CELL;
-
-                        int h = LOTRMap.getMapG(mx, mz);
-                        if(LOTRMap.isWater(mx, mz)) {
-                            h = getSeaLevel();
-                        }
-                        total += h;
-                        count++;
-                    }
-                }
-                height = total/count;
-
-                boolean hasWater = LOTRMap.isWater(mP.x(), mP.z());
-                if(hasWater) block = Blocks.WATER.defaultBlockState();
-                float percentageX = (float)(worldX % BLOCKS_PER_MAP_CELL) / (float)BLOCKS_PER_MAP_CELL;
-                float percentageZ = (float)(worldZ % BLOCKS_PER_MAP_CELL) / (float)BLOCKS_PER_MAP_CELL;
-                if(percentageX == 0 || percentageZ == 0) {
-                    block = Blocks.EMERALD_BLOCK.defaultBlockState();
-                }
-
                 for (int _y = 0; _y < height; _y++) {
                     if(_y == 0) {
                         chunkAccess.setBlockState(pos.set(x, getMinY(), z), bedrock);
@@ -157,20 +114,11 @@ public class MEChunkGen extends ChunkGenerator {
                     int y = chunkAccess.getMinY() + _y;
                     chunkAccess.setBlockState(pos.set(x, y, z), block);
                 }
-
-                if(hasWater && height < getSeaLevel()) {
-                    for(int _y = height; _y < getSeaLevel(); _y++) {
-                        int y = chunkAccess.getMinY() + _y;
-                        chunkAccess.setBlockState(pos.set(x, y, z), Blocks.WATER.defaultBlockState());
-                    }
-                }
             }
         }
 
         return CompletableFuture.completedFuture(chunkAccess);
     }
-
-    int test = 0;
 
     @Override
     public NoiseColumn getBaseColumn(int x, int z, LevelHeightAccessor levelHeightAccessor, RandomState randomState) {

@@ -15,7 +15,7 @@ import static org.fyrebyrns.narya.mewg.OpenSimplex2S.noise2;
 import static org.fyrebyrns.narya.mewg.generation.Elevation.getElevation;
 
 public class LOTRMap {
-    public static int BLOCKS_PER_MAP_CELL = 160;
+    public static int BLOCKS_PER_MAP_CELL = 200;
     public static int ABSOLUTE_MAX_WORLD_HEIGHT = 384;
 
     public static int MAP_WIDTH = 3200;
@@ -109,45 +109,6 @@ public class LOTRMap {
         return 0;
     }
 
-    public static boolean isWater(int r, int g, int b) {
-        ensureMapLoaded();
-        return waterColours.contains(new Color(r, g, b));
-    }
-    public static boolean isWater(int cellX, int cellZ) {
-        return isWater(getMapR(cellX, cellZ), getMapG(cellX, cellZ), getMapB(cellX, cellZ));
-    }
-    public static boolean isWater(MapPosition position) {
-        return isWater(position.x(), position.z());
-    }
-
-    public static boolean isForest(int r, int g, int b) {
-        ensureMapLoaded();
-        return forestColours.contains(new Color(r, g, b));
-    }
-
-    public static boolean hasDirectWaterAccess(int chunkX, int chunkZ) {
-        ensureMapLoaded();
-        if(mapLoaded) {
-            int sX = Math.max(0, Math.min(chunkX, map.getWidth()));
-            int sY = Math.max(0, Math.min(chunkZ, map.getHeight()));
-
-            Color color = new Color(mapDirectWater.getRGB(sX, sY));
-            return color.getRed() == 255;
-        }
-        return false;
-    }
-    public static boolean nearWater(int chunkX, int chunkZ) {
-        ensureMapLoaded();
-        if(mapLoaded) {
-            int sX = Math.max(0, Math.min(chunkX, map.getWidth()));
-            int sY = Math.max(0, Math.min(chunkZ, map.getHeight()));
-
-            Color color = new Color(mapNearWater.getRGB(sX, sY));
-            return color.getRed() == 255;
-        }
-        return false;
-    }
-
     public static int getMapHeight(int x, int z) {
         ensureMapLoaded();
 
@@ -161,6 +122,8 @@ public class LOTRMap {
                                 * zxSampleOffsetMagnitude
         );
 
+        int ox = x;
+        int oz = z;
         x += zxSampleOffsetNoise;
         z += zxSampleOffsetNoise;
 
@@ -181,10 +144,10 @@ public class LOTRMap {
                 ) / square(offset * 2));
         int elevation = (int)average;
 
-        double stretch = ((double)BLOCKS_PER_MAP_CELL / 20.0) * 50.0;
-        double magnitude = 0.03;
+        double stretch = 50.0;
+        double magnitude = 0.05;
         double noise = noise2(1, x / stretch, z / stretch) * magnitude;
-        noise += noise2(1, x / (stretch / 2.0), z / (stretch / 2.0)) * magnitude;
+        noise += noise2(1, x / (stretch / 2.0), z / (stretch / 2.0)) * magnitude / 2.0;
 //        noise = 0; // disable noise for testing overall shape
         elevation = (int)((double)elevation * (1.0 + noise));
 
