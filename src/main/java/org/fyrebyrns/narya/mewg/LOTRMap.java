@@ -32,8 +32,8 @@ public class LOTRMap {
 
     private static boolean mapLoaded = false;
 
-    private static BufferedImage map;
-    private static BufferedImage mapBiomes;
+    private static BufferedImage originalMapColour;
+    private static BufferedImage indexedOriginalBiomes;
 
     private static BufferedImage waterColourMap;
     private static BufferedImage forestColourMap;
@@ -43,8 +43,8 @@ public class LOTRMap {
     private static void ensureMapLoaded() {
         if(!mapLoaded) {
             try {
-                map = ImageIO.read(getStream("/assets/narya/map/lotr-biome-map.png"));
-                mapBiomes = ImageIO.read(getStream("/assets/narya/map/original-biome-map.png"));
+                originalMapColour = ImageIO.read(getStream("/assets/narya/map/original-colour-map.png"));
+                indexedOriginalBiomes = ImageIO.read(getStream("/assets/narya/map/map-indexed-original-biomes.png"));
 
                 // generate the map of colours -> features
                 waterColourMap = ImageIO.read(getStream("/assets/narya/map/water-colours.png"));
@@ -157,7 +157,7 @@ public class LOTRMap {
 
     public static ResourceKey<Biome> getBiome(MapPosition position) {
         ensureMapLoaded();
-        Color color = new Color(mapBiomes.getRGB(position.x(), position.z()));
+        Color color = new Color(indexedOriginalBiomes.getRGB(position.x(), position.z()));
         int id = color.getBlue();
         return DefaultLOTRBiomes.BiomesByID.get(id);
     }
@@ -167,8 +167,8 @@ public class LOTRMap {
         blockX /= BLOCKS_PER_MAP_CELL;
         blockZ /= BLOCKS_PER_MAP_CELL;
 
-        blockX = Math.max(0, Math.min(blockX, map.getWidth()-1));
-        blockZ = Math.max(0, Math.min(blockZ, map.getHeight()-1));
+        blockX = Math.max(0, Math.min(blockX, MAP_WIDTH - 1));
+        blockZ = Math.max(0, Math.min(blockZ, MAP_HEIGHT - 1));
 
         return new MapPosition(blockX, blockZ);
     }
