@@ -43,7 +43,7 @@ public class MEBiomeGen extends BiomeSource {
         int y = QuartPos.toBlock(j);
         int z = QuartPos.toBlock(k);
 
-        ResourceKey<Biome> biome = LOTRMap.getBiome(LOTRMap.getMapPos(x, z));
-        return getter.get(biome).orElseThrow();
+        LOTRMap.BiomeOrDirectHeight biome = LOTRMap.getBiome(LOTRMap.getMapPos(x, z));
+        return getter.get(biome.biome()).orElseThrow();
     }
 }

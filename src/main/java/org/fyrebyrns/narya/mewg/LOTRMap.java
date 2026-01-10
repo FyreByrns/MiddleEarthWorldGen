@@ -32,11 +32,10 @@ public class LOTRMap {
 
     private static boolean mapLoaded = false;
 
-    private static BufferedImage originalMapColour;
-    private static BufferedImage indexedOriginalBiomes;
+    public static BufferedImage originalMapColour;
+    public static BufferedImage indexedOriginalBiomes;
+    public static BufferedImage waterMask;
 
-    private static BufferedImage waterColourMap;
-    private static BufferedImage forestColourMap;
     private static ArrayList<Color> waterColours = new ArrayList<>();
     private static ArrayList<Color> forestColours = new ArrayList<>();
 
@@ -45,13 +44,14 @@ public class LOTRMap {
             try {
                 originalMapColour = ImageIO.read(getStream("/assets/narya/map/original-colour-map.png"));
                 indexedOriginalBiomes = ImageIO.read(getStream("/assets/narya/map/map-indexed-original-biomes.png"));
+                waterMask = ImageIO.read(getStream("/assets/narya/map/water-mask.png"));
 
                 // generate the map of colours -> features
-                waterColourMap = ImageIO.read(getStream("/assets/narya/map/water-colours.png"));
+                BufferedImage waterColourMap = ImageIO.read(getStream("/assets/narya/map/water-colours.png"));
                 for(int i = 0; i < waterColourMap.getWidth(); i++) {
                     waterColours.add(new Color(waterColourMap.getRGB(i, 0)));
                 }
-                forestColourMap = ImageIO.read(getStream("/assets/narya/map/forest-colours.png"));
+                BufferedImage forestColourMap = ImageIO.read(getStream("/assets/narya/map/forest-colours.png"));
                 for(int i = 0; i < forestColourMap.getWidth(); i++){
                     forestColours.add(new Color(forestColourMap.getRGB(i, 0)));
                 }
@@ -62,6 +62,17 @@ public class LOTRMap {
                 Mewg.LOGGER.error("exception loading map as resource: {}", e.toString());
             }
         }
+    }
+
+    public static boolean isUnderWaterMask(int blockX, int blockZ) {
+        MapPosition mapPos = getMapPos(blockX, blockZ);
+        return isUnderWaterMask(mapPos);
+    }
+    public static boolean isUnderWaterMask(MapPosition position) {
+        ensureMapLoaded();
+
+        Color waterMaskColour = new Color(waterMask.getRGB(position.x(), position.z()));
+        return waterMaskColour.getAlpha() > 0;
     }
 
     // get an input stream from a path
@@ -92,15 +103,21 @@ public class LOTRMap {
         int top    = z + offset;
         int left   = x - offset;
         int right  = x + offset;
+
+        BiomeOrDirectHeight lb = getBiome(getMapPos(left , bottom));
+        BiomeOrDirectHeight rb = getBiome(getMapPos(right, bottom));
+        BiomeOrDirectHeight lt = getBiome(getMapPos(left , top   ));
+        BiomeOrDirectHeight rt = getBiome(getMapPos(right, top   ));
+
         float rightCells  = (x + offset) % BLOCKS_PER_MAP_CELL;
         float leftCells   =  2 * offset  - rightCells;
         float topCells    = (z + offset) % BLOCKS_PER_MAP_CELL;
         float bottomCells =  2 * offset  - topCells;
         float average = (float) ((
-                        + (bottomCells) * (leftCells ) * getElevation(getBiome(getMapPos(left , bottom)))
-                        + (bottomCells) * (rightCells) * getElevation(getBiome(getMapPos(right, bottom)))
-                        + (topCells   ) * (leftCells ) * getElevation(getBiome(getMapPos(left , top   )))
-                        + (topCells   ) * (rightCells) * getElevation(getBiome(getMapPos(right, top   )))
+                        + (bottomCells) * (leftCells ) * lb.heightOrBiomeHeight()
+                        + (bottomCells) * (rightCells) * rb.heightOrBiomeHeight()
+                        + (topCells   ) * (leftCells ) * lt.heightOrBiomeHeight()
+                        + (topCells   ) * (rightCells) * rt.heightOrBiomeHeight()
                 ) / square(offset * 2));
         int elevation = (int)average;
 
@@ -114,52 +131,24 @@ public class LOTRMap {
         return elevation;
     }
 
-    private static double[][] convolve(double[][] input, double[][] kernel) {
-        double[][] result = input;
-
-        for(int x = 0; x < input.length; x++) {
-            for(int y = 0; y < input.length; y++) {
-                double accum = 0;
-
-                for(int kx = 0; kx < kernel.length; kx++) {
-                    for(int ky = 0; ky < kernel.length; ky++) {
-                        int sampleX = x + (int)map(0, kernel.length, -kernel.length/2, kernel.length/2, kx);
-                        int sampleY = y + (int)map(0, kernel.length, -kernel.length/2, kernel.length/2, ky);
-
-                        if (sampleX >= input.length) sampleX -= input.length;
-                        if (sampleY >= input.length) sampleY -= input.length;
-                        if (sampleX < 0)             sampleX += input.length;
-                        if (sampleY < 0)             sampleY += input.length;
-
-                        accum += input[sampleX][sampleY] * kernel[kx][ky];
-                    }
-                }
-
-                result[x][y] = accum;
-            }
-        }
-
-        return result;
-    }
-    private static double mean(double[][] input) {
-        int count = 0;
-        double sum = 0;
-
-        for (double[] doubles : input) {
-            for (double d : doubles) {
-                count++;
-                sum += d;
-            }
-        }
-
-        return sum / count;
-    }
-
-    public static ResourceKey<Biome> getBiome(MapPosition position) {
+    public static BiomeOrDirectHeight getBiome(MapPosition position) {
         ensureMapLoaded();
-        Color color = new Color(indexedOriginalBiomes.getRGB(position.x(), position.z()));
-        int id = color.getBlue();
-        return DefaultLOTRBiomes.BiomesByID.get(id);
+        Color colour = new Color(indexedOriginalBiomes.getRGB(position.x(), position.z()));
+        int id = colour.getBlue();
+        ResourceKey<Biome> biome = DefaultLOTRBiomes.BiomesByID.get(id);
+        int height = getElevation(biome);
+
+        if(isUnderWaterMask(position)) {
+            Color waterMaskColour = new Color(waterMask.getRGB(position.x(), position.z()));
+            int wR = waterMaskColour.getRed();
+            int wG = waterMaskColour.getGreen();
+            int wB = waterMaskColour.getBlue();
+            int waterTotalHeight = wR + wG + wB;
+
+            height += waterTotalHeight;
+        }
+
+        return new BiomeOrDirectHeight(biome, height);
     }
 
     public static MapPosition getMapPos(int blockX, int blockZ) {
@@ -171,6 +160,23 @@ public class LOTRMap {
         blockZ = Math.max(0, Math.min(blockZ, MAP_HEIGHT - 1));
 
         return new MapPosition(blockX, blockZ);
+    }
+
+    public record BiomeOrDirectHeight(ResourceKey<Biome> biome, int height) {
+        private static final int NO_HEIGHT = -696969;
+
+        public boolean hasBiome() { return biome != null; }
+        public boolean hasHeight() { return height != NO_HEIGHT; }
+
+        /** Return the explicit height if set, or the base biome height. */
+        public int heightOrBiomeHeight() {
+            if(hasHeight()) return height;
+            if(hasBiome()) return getElevation(biome);
+            return 0;
+        }
+
+        public static BiomeOrDirectHeight makeBiome(ResourceKey<Biome> biome) { return new BiomeOrDirectHeight(biome, NO_HEIGHT); }
+        public static BiomeOrDirectHeight makeHeight(int height) { return new BiomeOrDirectHeight(null, height); }
     }
 }
 

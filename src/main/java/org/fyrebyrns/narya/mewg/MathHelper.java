@@ -37,4 +37,8 @@ public class MathHelper {
     public static double cmap(double startA, double endA, double startB, double endB, double amount) {
         return clamp(startB, endB, map(startA, endA, startB, endB, amount));
     }
+
+    public static double dot(double aX, double aY, double bX, double bY) {
+        return aX * bX + aY * bY;
+    }
 }
