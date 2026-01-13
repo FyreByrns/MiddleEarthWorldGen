@@ -30,8 +30,6 @@ public class LOTRMap {
     public static int BASE_MOUNTAINS_LEVEL = 170;
     public static int PEAK_MOUNTAINS_LEVEL = 384;
 
-    private static boolean mapLoaded = false;
-
     public static BufferedImage originalMapColour;
     public static BufferedImage indexedOriginalBiomes;
     public static BufferedImage waterMask;
@@ -39,28 +37,23 @@ public class LOTRMap {
     private static ArrayList<Color> waterColours = new ArrayList<>();
     private static ArrayList<Color> forestColours = new ArrayList<>();
 
-    private static void ensureMapLoaded() {
-        if(!mapLoaded) {
-            try {
-                originalMapColour = ImageIO.read(getStream("/assets/narya/map/original-colour-map.png"));
-                indexedOriginalBiomes = ImageIO.read(getStream("/assets/narya/map/map-indexed-original-biomes.png"));
-                waterMask = ImageIO.read(getStream("/assets/narya/map/water-mask.png"));
+    static {
+        try {
+            originalMapColour = ImageIO.read(getStream("/assets/narya/map/original-colour-map.png"));
+            indexedOriginalBiomes = ImageIO.read(getStream("/assets/narya/map/map-indexed-original-biomes.png"));
+            waterMask = ImageIO.read(getStream("/assets/narya/map/water-mask.png"));
 
-                // generate the map of colours -> features
-                BufferedImage waterColourMap = ImageIO.read(getStream("/assets/narya/map/water-colours.png"));
-                for(int i = 0; i < waterColourMap.getWidth(); i++) {
-                    waterColours.add(new Color(waterColourMap.getRGB(i, 0)));
-                }
-                BufferedImage forestColourMap = ImageIO.read(getStream("/assets/narya/map/forest-colours.png"));
-                for(int i = 0; i < forestColourMap.getWidth(); i++){
-                    forestColours.add(new Color(forestColourMap.getRGB(i, 0)));
-                }
-
-                mapLoaded = true;
-
-            } catch (IOException e) {
-                Mewg.LOGGER.error("exception loading map as resource: {}", e.toString());
+            // generate the map of colours -> features
+            BufferedImage waterColourMap = ImageIO.read(getStream("/assets/narya/map/water-colours.png"));
+            for(int i = 0; i < waterColourMap.getWidth(); i++) {
+                waterColours.add(new Color(waterColourMap.getRGB(i, 0)));
             }
+            BufferedImage forestColourMap = ImageIO.read(getStream("/assets/narya/map/forest-colours.png"));
+            for(int i = 0; i < forestColourMap.getWidth(); i++){
+                forestColours.add(new Color(forestColourMap.getRGB(i, 0)));
+            }
+        } catch (IOException e) {
+            Mewg.LOGGER.error("exception loading map as resource: {}", e.toString());
         }
     }
 
@@ -69,8 +62,6 @@ public class LOTRMap {
         return isUnderWaterMask(mapPos);
     }
     public static boolean isUnderWaterMask(MapPosition position) {
-        ensureMapLoaded();
-
         Color waterMaskColour = new Color(waterMask.getRGB(position.x(), position.z()));
         return waterMaskColour.getAlpha() > 0;
     }
@@ -80,23 +71,24 @@ public class LOTRMap {
         return LOTRMap.class.getResourceAsStream(path);
     }
 
-    public static int getMapHeight(int x, int z) {
-        ensureMapLoaded();
-
+    public static int coordinateOffsetNoise(int x, int z) {
         double zxSampleOffsetStretch = (double)BLOCKS_PER_MAP_CELL / 3.0;
         double zxSampleOffsetMagnitude = (double)BLOCKS_PER_MAP_CELL / 20.0 * 3.0;
-        int zxSampleOffsetNoise = (int) (
-                        noise2(
-                                2,
-                                (double)x / zxSampleOffsetStretch,
-                                (double)z / zxSampleOffsetStretch)
-                                * zxSampleOffsetMagnitude
+        return (int) (
+                noise2(
+                        2,
+                        (double)x / zxSampleOffsetStretch,
+                        (double)z / zxSampleOffsetStretch)
+                        * zxSampleOffsetMagnitude
         );
+    }
 
+    public static int getMapHeight(int x, int z) {
         int ox = x;
         int oz = z;
-        x += zxSampleOffsetNoise;
-        z += zxSampleOffsetNoise;
+        int coNoise = coordinateOffsetNoise(x, z);
+        x += coNoise;
+        z += coNoise;
 
         int offset = (BLOCKS_PER_MAP_CELL / 2);
         int bottom = z - offset;
@@ -131,8 +123,22 @@ public class LOTRMap {
         return elevation;
     }
 
+    public static int getWaterHeight(int x, int z) {
+        if(!isUnderWaterMask(x, z)) {
+            return SEA_LEVEL;
+        }
+
+        return getBiome(getMapPos(x, z)).height;
+    }
+    public static int getTerrainHeight(int x, int z) {
+        // TODO: Properly get the underwater terrain height from a map
+        // TODO: .. for now, just make the underwater terrain height
+        // TODO: .. 8 blocks deeper than the water.
+        if(!isUnderWaterMask(x, z)) return getBiome(getMapPos(x, z)).height;
+        return getWaterHeight(x, z) - 8;
+    }
+
     public static BiomeOrDirectHeight getBiome(MapPosition position) {
-        ensureMapLoaded();
         Color colour = new Color(indexedOriginalBiomes.getRGB(position.x(), position.z()));
         int id = colour.getBlue();
         ResourceKey<Biome> biome = DefaultLOTRBiomes.BiomesByID.get(id);
@@ -152,7 +158,6 @@ public class LOTRMap {
     }
 
     public static MapPosition getMapPos(int blockX, int blockZ) {
-        ensureMapLoaded();
         blockX /= BLOCKS_PER_MAP_CELL;
         blockZ /= BLOCKS_PER_MAP_CELL;
 

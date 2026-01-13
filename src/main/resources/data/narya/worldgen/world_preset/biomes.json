@@ -3,7 +3,7 @@
     "minecraft:overworld": {
       "type": "minecraft:overworld",
       "generator": {
-        "type": "minecraft:noise",
+        "type": "narya:chunkgen",
         "settings": "narya:menoise",
         "biome_source": {
           "type": "narya:biomegen"

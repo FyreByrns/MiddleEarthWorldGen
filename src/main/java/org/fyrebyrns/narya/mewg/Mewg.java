@@ -25,7 +25,7 @@ public class Mewg implements ModInitializer {
     public void onInitialize() {
         Registry.register(
                 BuiltInRegistries.CHUNK_GENERATOR,
-                Identifier.fromNamespaceAndPath(MOD_ID, "worldgen"),
+                Identifier.fromNamespaceAndPath(MOD_ID, "chunkgen"),
                 MEChunkGen.CODEC
         );
         Registry.register(
