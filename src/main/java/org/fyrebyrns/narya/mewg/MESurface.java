@@ -5,7 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.SurfaceRules;
+import net.minecraft.world.level.levelgen.*;
 import net.minecraft.world.level.material.FlowingFluid;
 import org.jspecify.annotations.Nullable;
 
@@ -86,6 +86,12 @@ class MEGridLinesRule extends MERule {
 
     @Override
     public @Nullable BlockState tryApply(int x, int y, int z) {
+        int noiseCoordinateOffset = coordinateOffsetNoise(x, z);
+        int noisedX = x + noiseCoordinateOffset;
+        int noisedZ = z + noiseCoordinateOffset;
+        if(noisedX % BLOCKS_PER_MAP_CELL == 0 || noisedZ % BLOCKS_PER_MAP_CELL == 0)
+            return Blocks.DIAMOND_BLOCK.defaultBlockState();
+
         if(x % BLOCKS_PER_MAP_CELL == 0 || z % BLOCKS_PER_MAP_CELL == 0)
             return Blocks.EMERALD_BLOCK.defaultBlockState();
         if(x % BLOCKS_PER_MAP_CELL == BLOCKS_PER_MAP_CELL -1 || z % BLOCKS_PER_MAP_CELL == BLOCKS_PER_MAP_CELL -1)
